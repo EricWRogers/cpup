@@ -6,6 +6,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <SDL3/SDL.h>
+#include <SDL3/SDL_main.h>
+
 #include "cpup/io.h"
 #include "cpup/vec.h"
 #include "cpup/types.h"
@@ -31,11 +34,15 @@ void remove_task(int _index);
 void clear_tasks();
 void save_tasks(const char* _file);
 void load_tasks(const char* _file);
+void run_sdl_window();
 
-int main(int _argc, char* _argv[])
+int main(int argc, char *argv[])
 {
     vec_init(&tasks, DEFAULT_TASK_CAPACITY, sizeof(Task));
     load_tasks(TASKS_FILE);
+
+    run_sdl_window();
+    return 0;
 
     int should_loop = 1;
 
@@ -193,4 +200,35 @@ void load_tasks(const char* _file)
     }
 
     fclose(file);
+}
+
+void run_sdl_window()
+{
+    SDL_SetHint(SDL_HINT_VIDEO_DRIVER, "x11");
+
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS) == false) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "SDL_Init Error: %s", SDL_GetError());
+        exit(1);
+    }
+
+    SDL_Window* window = SDL_CreateWindow("fogpi", 800, 600, 0);
+    if (window == NULL) {
+        fprintf(stderr, "SDL_CreateWindow failed: %s\n", SDL_GetError());
+        SDL_Quit();
+        return;
+    }
+
+    int running = 1;
+    while (running) {
+        SDL_Event event;
+        while (SDL_PollEvent(&event)) {
+            if (event.type == SDL_EVENT_QUIT) {
+                running = 0;
+            }
+        }
+        SDL_Delay(16);
+    }
+
+    SDL_DestroyWindow(window);
+    SDL_Quit();
 }
