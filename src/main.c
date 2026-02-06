@@ -14,6 +14,13 @@
 #include "cpup/vec.h"
 #include "cpup/types.h"
 
+typedef struct {
+    void* window;
+    void* glContext;
+} AppContext;
+
+AppContext appContext;
+
 void RunWindow();
 
 int main(int argc, char *argv[])
@@ -41,14 +48,26 @@ void RunWindow()
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
     SDL_SetHint(SDL_HINT_RENDER_GPU_LOW_POWER, "0"); // prefer high perforance GPU
 
-    SDL_Window* window = SDL_CreateWindow("CPup", 800, 600, 0);
+    appContext.window = (void*)SDL_CreateWindow("CPup", 800, 600, 0);
 
-    if (window == NULL)
+    if (appContext.window == NULL)
     {
 
     }
 
+    appContext.glContext = (void*)SDL_GL_CreateContext((SDL_Window*)appContext.window);
 
+    if (appContext.glContext)
+    {
+
+    }
+
+    glewExperimental = true;
+    GLenum error = glewInit();
+    if (error != GLEW_OK)
+    {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "GLEW Failed: %s", glewGetErrorString(error));
+    }
 
     bool running = true;
     while(running) {
@@ -59,4 +78,10 @@ void RunWindow()
                 running = false;
         }
     }
+
+
+    if (appContext.glContext)
+        SDL_GL_DestroyContext(appContext.glContext);
+    if (appContext.window)
+        SDL_DestroyWindow(appContext.window);
 }
