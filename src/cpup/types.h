@@ -17,5 +17,7 @@ typedef uint64_t u64; // 18,446,744,073,709,551,615
 #define u32_max	    (4294967295U)
 #define u64_max     (18446744073709551615)
 
+#define BIT(n) (1u << (n))
+
 typedef float f32;
 typedef double d64;

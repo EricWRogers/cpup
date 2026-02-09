@@ -13,7 +13,7 @@ i32 window_init(AppContext* _appContext)
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
     SDL_SetHint(SDL_HINT_RENDER_GPU_LOW_POWER, "0"); // prefer high perforance GPU
 
-    _appContext->window = (void*)SDL_CreateWindow("CPup", 800, 600, SDL_WINDOW_OPENGL);
+    _appContext->window = (void*)SDL_CreateWindow("CPup", 600, 600, SDL_WINDOW_OPENGL);
 
     if (_appContext->window == NULL)
     {
@@ -49,4 +49,9 @@ void window_destroy(AppContext* _appContext)
     
     _appContext->glContext = NULL;
     _appContext->window = NULL;
+}
+
+void window_swap(AppContext* _appContext)
+{
+    SDL_GL_SwapWindow((SDL_Window*)_appContext->window);
 }
