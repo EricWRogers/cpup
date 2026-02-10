@@ -86,6 +86,18 @@ unsigned int vec_count(void* _refList) {
     return info->count;
 }
 
+size_t vec_element_size(void* _refList) {
+    vec_info* info = *(vec_info**)_refList - 1;
+
+    return info->elementSize;
+}
+
+size_t vec_size_of(void* _refList) {
+    vec_info* info = *(vec_info**)_refList - 1;
+
+    return info->elementSize * info->count;
+}
+
 int vec_find(void* _refList, void* _value) {
     vec_info* info = *(vec_info**)_refList - 1;
 

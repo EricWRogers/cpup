@@ -8,6 +8,8 @@ extern void vec_clear(void* _refList);
 extern void vec_add(void* _refList, const void* _value);
 extern void vec_remove_at(void* _refVec, unsigned int _index);
 extern unsigned int vec_count(void* _refList);
+extern size_t vec_element_size(void* _refList);
+extern size_t vec_size_of(void* _refList);
 extern int vec_find(void* _refList, void* _value);
 extern void* vec_end(void* _refList);
 extern void vec_grow(void* _refList);
