@@ -59,3 +59,8 @@ void ShaderBindTexture(u32 _shaderID, u32 _textureID, const char* _variableName,
     // get texture variable from sharder then tell it which slot to use
     glUniform1i(glGetUniformLocation(_shaderID, _variableName), _slot);
 }
+
+void ShaderSetFloat(u32 _shaderID, const char* _variableName, f32 _value)
+{
+    glUniform1f(glGetUniformLocation(_shaderID, _variableName), _value);
+}

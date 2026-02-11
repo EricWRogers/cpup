@@ -23,9 +23,11 @@ const char *vertexShaderSource = "#version 330 core\n"
     "layout (location = 2) in vec2 aTexCoord;\n"
     "out vec3 ourColor;\n"
     "out vec2 TexCoord;\n"
+    "uniform float time;\n"
     "void main()\n"
     "{\n"
     "   gl_Position = vec4(aPos, 1.0);\n"
+    "   gl_Position.x += sin(time);\n"
     "   ourColor = aColor;\n"
 	"   TexCoord = vec2(aTexCoord.x, aTexCoord.y);\n"
     "}\0";
@@ -81,6 +83,7 @@ int main(int argc, char *argv[])
     Model model = BuildModel(&vertices, &indices, STATIC_DRAW);
     
     bool running = true;
+    f32 time = 0.0f;
     while(running) {
         // imput
         SDL_Event event;
@@ -97,7 +100,9 @@ int main(int argc, char *argv[])
         // bind the shader
         ShaderUse(shaderProgram);
         ShaderBindTexture(shaderProgram, image.id, "mainTexture", 0);
+        ShaderSetFloat(shaderProgram, "time", time+=0.016f);
         
+        DrawModel(model);
         DrawModel(model);
 
         window_swap(&appContext);

@@ -13,6 +13,21 @@ else()
     message(STATUS "ccache not found")
 endif()
 
+if (CMAKE_C_COMPILER_ID MATCHES "Clang|GNU")
+  find_program(MOLD_LINKER mold)
+  find_program(LLD_LINKER  ld.lld)
+
+  if (MOLD_LINKER)
+    message(STATUS "Using mold linker: ${MOLD_LINKER}")
+    add_link_options(-fuse-ld=mold)
+  elseif (LLD_LINKER)
+    message(STATUS "Using lld linker: ${LLD_LINKER}")
+    add_link_options(-fuse-ld=lld)
+  else()
+    message(STATUS "No mold/lld found; using default linker")
+  endif()
+endif()
+
 set_property(GLOBAL PROPERTY CMAKE_CONFIGURE_DEPENDS ON)
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
@@ -48,3 +63,15 @@ target_link_libraries(${PROJECT_NAME}
     libglew_static
 )
 
+target_precompile_headers(${PROJECT_NAME}
+    PRIVATE
+    <stdio.h>
+    <stdlib.h>
+    <string.h>
+
+    "src/cpup/vec.h"
+    "src/cpup/arena.h"
+    "src/cpup/io.h"
+    "src/cpup/types.h"
+    "src/cpup/opengl.h"
+)
