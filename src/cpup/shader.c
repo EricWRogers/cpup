@@ -1,8 +1,32 @@
 #include "shader.h"
 
+#include "io.h"
 #include "opengl.h"
 
 #include <stdio.h>
+
+u32 GenerateShaderFromFiles(const char* _vertexPath, const char* _fragmentPath)
+{
+    char* vertexSource = LoadFile(_vertexPath);
+
+    if (vertexSource == NULL)
+        return 0;
+    
+    char* fragmentSource = LoadFile(_fragmentPath);
+
+    if (fragmentSource == NULL)
+    {
+        free(vertexSource);
+        return 0;
+    }
+
+    u32 shaderId = GenerateShader(vertexSource, fragmentSource);
+
+    free(vertexSource);
+    free(fragmentSource);
+
+    return shaderId;
+}
 
 u32 GenerateShader(const char* _vertexShaderSource, const char* _fragmentShaderSource)
 {
@@ -18,6 +42,7 @@ u32 GenerateShader(const char* _vertexShaderSource, const char* _fragmentShaderS
     {
         glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
         printf("ERROR::SHADER::VERTEX::COMPILATION_FAILED\n%s\n", infoLog);
+        return 0;
     }
     // fragment shader
     unsigned int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
@@ -27,8 +52,10 @@ u32 GenerateShader(const char* _vertexShaderSource, const char* _fragmentShaderS
     glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
     if (!success)
     {
+        glDeleteShader(vertexShader);
         glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
         printf("ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n%s\n", infoLog);
+        return 0;
     }
     // link shaders
     unsigned int shaderProgram = glCreateProgram();
@@ -45,6 +72,11 @@ u32 GenerateShader(const char* _vertexShaderSource, const char* _fragmentShaderS
     glDeleteShader(fragmentShader);
 
     return shaderProgram;
+}
+
+void DeleteShader(u32 _shaderID)
+{
+    glDeleteShader(_shaderID);
 }
 
 void ShaderUse(u32 _shaderID)

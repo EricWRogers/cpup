@@ -140,6 +140,19 @@ Image LoadImage(const char* _path)
     return image;
 }
 
+char* LoadFile(const char* _path)
+{
+    size_t fileSize;
+    char* data = SDL_LoadFile(_path, &fileSize);
+
+    if (data == NULL)
+    {
+        printf("Error: loading file %s!", _path);
+    }
+
+    return data;
+}
+
 void clear_input_buffer()
 {
     int c;

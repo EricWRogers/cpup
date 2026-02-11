@@ -11,6 +11,8 @@ typedef struct {
 
 Image LoadImage(const char* _path);
 
+char* LoadFile(const char* _path);
+
 int     get_int();
 float   get_float();
 char    get_char();

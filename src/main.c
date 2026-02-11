@@ -53,7 +53,8 @@ int main(int argc, char *argv[])
     Image image = LoadImage("assets/textures/canis_engine_icon.tga");
     
     // build and compile our shader program
-    u32 shaderProgram = GenerateShader(vertexShaderSource, fragmentShaderSource);
+    u32 shaderProgram = GenerateShaderFromFiles("assets/shaders/logo.vs", "assets/shaders/logo.fs");
+    printf("shaderID: %i\n", shaderProgram);
 
     float ve[] = {
         // positions          // colors           // texture coords
@@ -84,6 +85,20 @@ int main(int argc, char *argv[])
         {
             if (event.type == SDL_EVENT_QUIT)
                 running = false;
+            if (event.type == SDL_EVENT_KEY_UP)
+            {
+                if (event.key.scancode == SDL_SCANCODE_R)
+                {
+                    printf("Load new shader!\n");
+                    u32 newShader = GenerateShaderFromFiles("assets/shaders/logo.vs", "assets/shaders/logo.fs");
+
+                    if (newShader != 0)
+                    {
+                        DeleteShader(shaderProgram);
+                        shaderProgram = newShader;
+                    }
+                }
+            }
         }
 
         // render
@@ -106,5 +121,7 @@ int main(int argc, char *argv[])
     free(image.data);
 
     window_destroy(&appContext);
+
+    DeleteShader(shaderProgram);
     return 0;
 }
