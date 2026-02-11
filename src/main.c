@@ -29,7 +29,7 @@ const char *vertexShaderSource = "#version 330 core\n"
     "   gl_Position = vec4(aPos, 1.0);\n"
     "   gl_Position.x += sin(time) * 0.5f;\n"
     "   gl_Position.y += cos(time) * 0.5f;\n"
-    "   ourColor = aColor;\n"
+    "   ourColor = abs(gl_Position.rgb);\n"
 	"   TexCoord = vec2(aTexCoord.x, aTexCoord.y);\n"
     "}\0";
 const char *fragmentShaderSource = "#version 330 core\n"
@@ -39,7 +39,7 @@ const char *fragmentShaderSource = "#version 330 core\n"
     "uniform sampler2D mainTexture;\n"
     "void main()\n"
     "{\n"
-    "   FragColor = texture(mainTexture, TexCoord);\n"
+    "   FragColor = texture(mainTexture, TexCoord) * vec4(ourColor, 1.0f);\n"
     "}\n\0";
 
 int main(int argc, char *argv[])
