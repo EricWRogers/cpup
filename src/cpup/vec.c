@@ -9,15 +9,15 @@ typedef struct {
     size_t elementSize;
 } vec_info;
 
-void vec_init(void* _refList, unsigned int _capacity, size_t _elementSize) {
+void* vec_init(unsigned int _capacity, size_t _elementSize) {
     unsigned int capacity = _capacity ? _capacity : 1;
     vec_info* info = malloc( sizeof(vec_info) + (capacity * _elementSize));
-
-    *((void**)_refList) = info + 1;
 
     info->capacity = capacity;
     info->count = 0;
     info->elementSize = _elementSize;
+
+    return info + 1;
 }
 
 void vec_free(void* _refList) {
@@ -40,13 +40,17 @@ void vec_add(void* _refList, const void* _value) {
     {
         info->capacity = info->capacity * 2;
 
-        info = realloc( info,
+        void* newLocation = realloc( info,
             sizeof(vec_info) + (info->capacity * info->elementSize)
         );
 
-        if (info == NULL)
+        if (newLocation == NULL)
         {
             printf("vec failed to realloc\n");
+        }
+        else
+        {
+            info = newLocation;
         }
 
         // if realloc moved the memory then we need to change where the _refList is pointing
@@ -60,6 +64,42 @@ void vec_add(void* _refList, const void* _value) {
     );
 
     info->count++;
+
+    //printf("count: %i capacity: %i\n", info->count, info->capacity);
+}
+
+void vec_append(void* _refList, void* _array, size_t _elementCount)
+{
+    vec_info* info = ((vec_info*)(*((void**)_refList))) - 1;
+
+    if (info->count + _elementCount >= info->capacity)
+    {
+        info->capacity = info->capacity * 2;
+
+        void* newLocation = realloc( info,
+            sizeof(vec_info) + (info->capacity * info->elementSize)
+        );
+
+        if (newLocation == NULL)
+        {
+            printf("vec failed to realloc\n");
+        }
+        else
+        {
+            info = newLocation;
+        }
+
+        // if realloc moved the memory then we need to change where the _refList is pointing
+        *((void**)_refList) = info + 1;
+    }
+
+    memcpy(
+        (*(char**)_refList + (info->count * info->elementSize)),
+        _array,
+        info->elementSize * _elementCount
+    );
+
+    info->count += _elementCount;
 }
 
 void vec_remove_at(void* _refVec, unsigned int _index) {

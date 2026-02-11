@@ -2,10 +2,11 @@
 #include <string.h>
 #include <stdbool.h>
 
-extern void vec_init(void* _refList, unsigned int _capacity, size_t _elementSize);
+extern void* vec_init(unsigned int _capacity, size_t _elementSize);
 extern void vec_free(void* _refList);
 extern void vec_clear(void* _refList);
 extern void vec_add(void* _refList, const void* _value);
+extern void vec_append(void* _refList, void* _array, size_t _elementCount);
 extern void vec_remove_at(void* _refVec, unsigned int _index);
 extern unsigned int vec_count(void* _refList);
 extern size_t vec_element_size(void* _refList);

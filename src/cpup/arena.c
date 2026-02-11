@@ -9,7 +9,7 @@ Arena arena_init(size_t _size) {
     arena.size = _size;
     arena.data = malloc(_size);
 
-    vec_init(&arena._freeList, 10, sizeof(BlockInfo));
+    arena._freeList = vec_init(10, sizeof(BlockInfo));
     BlockInfo block = {};
     block.size = _size;
     block.data = arena.data;

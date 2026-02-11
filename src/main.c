@@ -27,7 +27,8 @@ const char *vertexShaderSource = "#version 330 core\n"
     "void main()\n"
     "{\n"
     "   gl_Position = vec4(aPos, 1.0);\n"
-    "   gl_Position.x += sin(time);\n"
+    "   gl_Position.x += sin(time) * 0.5f;\n"
+    "   gl_Position.y += cos(time) * 0.5f;\n"
     "   ourColor = aColor;\n"
 	"   TexCoord = vec2(aTexCoord.x, aTexCoord.y);\n"
     "}\0";
@@ -66,19 +67,11 @@ int main(int argc, char *argv[])
         1, 2, 3  // second triangle
     };
 
-    f32* vertices = NULL;
-    vec_init(&vertices, 32, sizeof(f32));
-    for(int i = 0; i < 32; i++)
-        vec_add(&vertices, ve + i);
+    f32* vertices = vec_init(32, sizeof(f32));
+    vec_append(&vertices, ve, 32);
 
-    u32* indices = NULL;
-    vec_init(&indices, 6, sizeof(u32));
-    vec_add(&indices, in + 0);
-    vec_add(&indices, in + 1);
-    vec_add(&indices, in + 2);
-    vec_add(&indices, in + 3);
-    vec_add(&indices, in + 4);
-    vec_add(&indices, in + 5);
+    u32* indices = vec_init(6, sizeof(u32));
+    vec_append(&indices, in, 6);
     
     Model model = BuildModel(&vertices, &indices, STATIC_DRAW);
     
