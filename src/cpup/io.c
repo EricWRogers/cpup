@@ -56,35 +56,35 @@ Image LoadImage(const char* _path)
         SDL_ReadIO(file, &imageDescriptor, sizeof(u8));
         
 
-        printf("idLength %x\n", idLength);
-        printf("colorMap %x\n", colorMap);
-        printf("imageType %x\n", imageType);
-        printf("entryIndex %hu\n", entryIndex);
-        printf("mapLength %hu\n", mapLength);
-        printf("mapEntrySize %x\n", mapEntrySize);
-        printf("xOrigin %hu\n", xOrigin);
-        printf("yOrigin %hu\n", yOrigin);
-        printf("width %hu\n", width);
-        printf("height %hu\n", height);
-        //printf("pixelDepth %x\n", pixelDepth);
-        printf("pixelDepth %u (0x%02X)\n", (unsigned)pixelDepth, (unsigned)pixelDepth);
+        //printf("idLength %x\n", idLength);
+        //printf("colorMap %x\n", colorMap);
+        //printf("imageType %x\n", imageType);
+        //printf("entryIndex %hu\n", entryIndex);
+        //printf("mapLength %hu\n", mapLength);
+        //printf("mapEntrySize %x\n", mapEntrySize);
+        //printf("xOrigin %hu\n", xOrigin);
+        //printf("yOrigin %hu\n", yOrigin);
+        //printf("width %hu\n", width);
+        //printf("height %hu\n", height);
+        ////printf("pixelDepth %x\n", pixelDepth);
+        //printf("pixelDepth %u (0x%02X)\n", (unsigned)pixelDepth, (unsigned)pixelDepth);
 
-        if (imageDescriptor & BIT(0))
-            printf("imageDescriptor bit 0\n");
-        if (imageDescriptor & BIT(1))
-            printf("imageDescriptor bit 1\n");
-        if (imageDescriptor & BIT(2))
-            printf("imageDescriptor bit 2\n");
-        if (imageDescriptor & BIT(3))
-            printf("imageDescriptor bit 3\n");
-        if (imageDescriptor & BIT(4))
-            printf("imageDescriptor bit 4\n");
-        if (imageDescriptor & BIT(5))
-            printf("imageDescriptor bit 5\n");
-        if (imageDescriptor & BIT(6))
-            printf("imageDescriptor bit 6\n");
-        if (imageDescriptor & BIT(7))
-            printf("imageDescriptor bit 7\n");
+        //if (imageDescriptor & BIT(0))
+        //    printf("imageDescriptor bit 0\n");
+        //if (imageDescriptor & BIT(1))
+        //    printf("imageDescriptor bit 1\n");
+        //if (imageDescriptor & BIT(2))
+        //    printf("imageDescriptor bit 2\n");
+        //if (imageDescriptor & BIT(3))
+        //    printf("imageDescriptor bit 3\n");
+        //if (imageDescriptor & BIT(4))
+        //    printf("imageDescriptor bit 4\n");
+        //if (imageDescriptor & BIT(5))
+        //    printf("imageDescriptor bit 5\n");
+        //if (imageDescriptor & BIT(6))
+        //    printf("imageDescriptor bit 6\n");
+        //if (imageDescriptor & BIT(7))
+        //    printf("imageDescriptor bit 7\n");
         
         u32 bytesPerPixel = pixelDepth / 8;
         size_t srcSize = (size_t)width * (size_t)height * bytesPerPixel;

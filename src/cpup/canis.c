@@ -3,7 +3,7 @@
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_log.h>
 
-i32 canis_init()
+i32 InitCanis()
 {
     #ifdef __linux__
         SDL_SetHint(SDL_HINT_VIDEO_DRIVER, "x11");

@@ -4,12 +4,12 @@ layout (location = 1) in vec3 aColor;
 layout (location = 2) in vec2 aTexCoord;
 out vec3 ourColor;
 out vec2 TexCoord;
-uniform float time;
+uniform float TIME;
 void main()
 {
    gl_Position = vec4(aPos, 1.0);
-   gl_Position.x += sin(time) * 0.5f;
-   gl_Position.y += cos(time) * 0.5f;
-   ourColor = abs(gl_Position.rgb);
+   gl_Position.x += sin(TIME) * 0.5f;
+   gl_Position.y += cos(TIME) * 0.5f;
+   ourColor = abs(vec3(gl_Position));
    TexCoord = vec2(aTexCoord.x, aTexCoord.y);
 }

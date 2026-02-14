@@ -7,4 +7,4 @@ typedef struct {
     void* glContext;
 } AppContext;
 
-extern i32 canis_init();
+extern i32 InitCanis();

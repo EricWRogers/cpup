@@ -4,7 +4,7 @@
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_log.h>
 
-i32 window_init(AppContext* _appContext)
+i32 InitWindow(AppContext* _appContext)
 {
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
@@ -47,7 +47,7 @@ i32 window_init(AppContext* _appContext)
     return 0;
 }
 
-void window_destroy(AppContext* _appContext)
+void FreeWindow(AppContext* _appContext)
 {
     if (_appContext->glContext)
         SDL_GL_DestroyContext((SDL_GLContext)_appContext->glContext);
@@ -58,12 +58,12 @@ void window_destroy(AppContext* _appContext)
     _appContext->window = NULL;
 }
 
-void window_swap(AppContext* _appContext)
+void SwapWindow(AppContext* _appContext)
 {
     SDL_GL_SwapWindow((SDL_Window*)_appContext->window);
 }
 
-void window_clear()
+void ClearWindow()
 {
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

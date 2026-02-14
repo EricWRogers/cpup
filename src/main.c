@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
 
 #include "cpup/io.h"
@@ -17,37 +18,12 @@
 
 AppContext appContext;
 
-const char *vertexShaderSource = "#version 330 core\n"
-    "layout (location = 0) in vec3 aPos;\n"
-    "layout (location = 1) in vec3 aColor;\n"
-    "layout (location = 2) in vec2 aTexCoord;\n"
-    "out vec3 ourColor;\n"
-    "out vec2 TexCoord;\n"
-    "uniform float time;\n"
-    "void main()\n"
-    "{\n"
-    "   gl_Position = vec4(aPos, 1.0);\n"
-    "   gl_Position.x += sin(time) * 0.5f;\n"
-    "   gl_Position.y += cos(time) * 0.5f;\n"
-    "   ourColor = abs(gl_Position.rgb);\n"
-	"   TexCoord = vec2(aTexCoord.x, aTexCoord.y);\n"
-    "}\0";
-const char *fragmentShaderSource = "#version 330 core\n"
-    "out vec4 FragColor;\n"
-    "in vec3 ourColor;\n"
-    "in vec2 TexCoord;\n"
-    "uniform sampler2D mainTexture;\n"
-    "void main()\n"
-    "{\n"
-    "   FragColor = texture(mainTexture, TexCoord) * vec4(ourColor, 1.0f);\n"
-    "}\n\0";
-
 int main(int argc, char *argv[])
 {
-    if (canis_init() > 0)
+    if (InitCanis() > 0)
         return 1;
     
-    if (window_init(&appContext) > 0)
+    if (InitWindow(&appContext) > 0)
         return 1;
     
     Image image = LoadImage("assets/textures/canis_engine_icon.tga");
@@ -102,25 +78,26 @@ int main(int argc, char *argv[])
         }
 
         // render
-        window_clear();
+        ClearWindow();
 
         // draw our first triangle
         // bind the shader
-        ShaderUse(shaderProgram);
-        ShaderBindTexture(shaderProgram, image.id, "mainTexture", 0);
-        ShaderSetFloat(shaderProgram, "time", time+=0.016f);
+        BindShader(shaderProgram);
+        ShaderBindTexture(shaderProgram, image.id, "MAIN_TEXTURE", 0);
+        ShaderSetFloat(shaderProgram, "TIME", SDL_GetTicks()/1000.0f);
         
         DrawModel(model);
         DrawModel(model);
+        UnBindShader();
 
-        window_swap(&appContext);
+        SwapWindow(&appContext);
     }
 
     FreeModel(model);
 
     free(image.data);
 
-    window_destroy(&appContext);
+    FreeWindow(&appContext);
 
     DeleteShader(shaderProgram);
     return 0;

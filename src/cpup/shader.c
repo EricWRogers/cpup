@@ -4,6 +4,7 @@
 #include "opengl.h"
 
 #include <stdio.h>
+#include <stdlib.h>
 
 u32 GenerateShaderFromFiles(const char* _vertexPath, const char* _fragmentPath)
 {
@@ -79,9 +80,14 @@ void DeleteShader(u32 _shaderID)
     glDeleteShader(_shaderID);
 }
 
-void ShaderUse(u32 _shaderID)
+void BindShader(u32 _shaderID)
 {
     glUseProgram(_shaderID);
+}
+
+void UnBindShader()
+{
+    BindShader(0);
 }
 
 void ShaderBindTexture(u32 _shaderID, u32 _textureID, const char* _variableName, u32 _slot)
