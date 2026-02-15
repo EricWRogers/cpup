@@ -11,6 +11,7 @@
 
 #include "cpup/io.h"
 #include "cpup/vec.h"
+#include "cpup/math.h"
 #include "cpup/types.h"
 #include "cpup/model.h"
 #include "cpup/shader.h"
@@ -22,6 +23,9 @@ int main(int argc, char *argv[])
 {
     if (InitCanis() > 0)
         return 1;
+
+    appContext.windowWidth = 600;
+    appContext.windowHeight = 600;
     
     if (InitWindow(&appContext) > 0)
         return 1;
@@ -33,11 +37,11 @@ int main(int argc, char *argv[])
     printf("shaderID: %i\n", shaderProgram);
 
     float ve[] = {
-        // positions          // colors           // texture coords
-         0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f, // top right
-         0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f, // bottom right
-        -0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f, // bottom left
-        -0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f  // top left 
+        // positions            // texture coords
+         0.5f,  0.5f, 0.0f,     1.0f, 1.0f, // top right
+         0.5f, -0.5f, 0.0f,     1.0f, 0.0f, // bottom right
+        -0.5f, -0.5f, 0.0f,     0.0f, 0.0f, // bottom left
+        -0.5f,  0.5f, 0.0f,     0.0f, 1.0f  // top left 
     };
     unsigned int in[] = {
         0, 1, 3, // first triangle
@@ -80,11 +84,22 @@ int main(int argc, char *argv[])
         // render
         ClearWindow();
 
+        Matrix4 projection = Mat4Orthographic(0.0f, (float)appContext.windowWidth, 0.0f, (float)appContext.windowHeight, 0.001f, 100.0f); 
+        Matrix4 view = IdentityMatrix4(); 
+        Mat4Translate(&view, InitVector3(0.0f, 0.0f, -0.5f));
+        
+        Matrix4 transform = IdentityMatrix4();
+        Mat4Translate(&transform, InitVector3(300.0f, 300.0f, 0.0f));
+        Mat4Scale(&transform, InitVector3(300.0f, 300.0f, 300.0f));
+
         // draw our first triangle
         // bind the shader
         BindShader(shaderProgram);
         ShaderBindTexture(shaderProgram, image.id, "MAIN_TEXTURE", 0);
         ShaderSetFloat(shaderProgram, "TIME", SDL_GetTicks()/1000.0f);
+        ShaderSetMatrix4(shaderProgram, "VIEW", view);
+        ShaderSetMatrix4(shaderProgram, "PROJECTION", projection);
+        ShaderSetMatrix4(shaderProgram, "TRANSFORM", transform);
         
         DrawModel(model);
         DrawModel(model);

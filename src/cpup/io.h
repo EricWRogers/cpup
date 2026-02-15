@@ -1,6 +1,6 @@
 #pragma once
 #include <string.h>
-#include "types.h"
+#include "math.h"
 
 typedef struct {
     i32 id;
