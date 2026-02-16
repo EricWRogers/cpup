@@ -17,20 +17,21 @@
 #include "cpup/shader.h"
 #include "cpup/window.h"
 
-AppContext appContext;
+AppContext app;
 
 int main(int argc, char *argv[])
 {
     if (InitCanis() > 0)
         return 1;
 
-    appContext.windowWidth = 600;
-    appContext.windowHeight = 600;
+    app.windowWidth = 600;
+    app.windowHeight = 600;
     
-    if (InitWindow(&appContext) > 0)
+    if (InitWindow(&app) > 0)
         return 1;
     
-    Image image = LoadImage("assets/textures/canis_engine_icon.tga");
+    Image iconImage = LoadImage("assets/textures/canis_engine_icon.tga");
+    Image containerImage = LoadImage("assets/textures/container.tga");
     
     // build and compile our shader program
     u32 shaderProgram = GenerateShaderFromFiles("assets/shaders/logo.vs", "assets/shaders/logo.fs");
@@ -77,6 +78,12 @@ int main(int argc, char *argv[])
                         DeleteShader(shaderProgram);
                         shaderProgram = newShader;
                     }
+
+                    free(iconImage.data);
+                    iconImage = LoadImage("assets/textures/canis_engine_icon.tga");
+                    
+                    free(containerImage.data);
+                    containerImage = LoadImage("assets/textures/container.tga");
                 }
             }
         }
@@ -84,35 +91,43 @@ int main(int argc, char *argv[])
         // render
         ClearWindow();
 
-        Matrix4 projection = Mat4Orthographic(0.0f, (float)appContext.windowWidth, 0.0f, (float)appContext.windowHeight, 0.001f, 100.0f); 
+        Matrix4 projection = Mat4Orthographic(0.0f, (float)app.windowWidth, 0.0f, (float)app.windowHeight, 0.001f, 100.0f); 
         Matrix4 view = IdentityMatrix4(); 
         Mat4Translate(&view, InitVector3(0.0f, 0.0f, -0.5f));
         
         Matrix4 transform = IdentityMatrix4();
         Mat4Translate(&transform, InitVector3(300.0f, 300.0f, 0.0f));
-        Mat4Scale(&transform, InitVector3(300.0f, 300.0f, 300.0f));
+        Mat4Scale(&transform, InitVector3(128.0f, 128.0f, 1.0f));
+
+        Matrix4 transform2 = IdentityMatrix4();
+        Mat4Translate(&transform2, InitVector3(450.0f, 450.0f, 0.0f));
+        Mat4Scale(&transform2, InitVector3(128.0f, 128.0f, 1.0f));
 
         // draw our first triangle
         // bind the shader
         BindShader(shaderProgram);
-        ShaderBindTexture(shaderProgram, image.id, "MAIN_TEXTURE", 0);
         ShaderSetFloat(shaderProgram, "TIME", SDL_GetTicks()/1000.0f);
         ShaderSetMatrix4(shaderProgram, "VIEW", view);
         ShaderSetMatrix4(shaderProgram, "PROJECTION", projection);
+
+        ShaderBindTexture(shaderProgram, iconImage.id, "MAIN_TEXTURE", 0);
         ShaderSetMatrix4(shaderProgram, "TRANSFORM", transform);
-        
         DrawModel(model);
+
+        ShaderBindTexture(shaderProgram, containerImage.id, "MAIN_TEXTURE", 0);
+        ShaderSetMatrix4(shaderProgram, "TRANSFORM", transform2);
         DrawModel(model);
         UnBindShader();
 
-        SwapWindow(&appContext);
+        SwapWindow(&app);
     }
 
     FreeModel(model);
 
-    free(image.data);
+    free(iconImage.data);
+    free(containerImage.data);
 
-    FreeWindow(&appContext);
+    FreeWindow(&app);
 
     DeleteShader(shaderProgram);
     return 0;

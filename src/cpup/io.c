@@ -85,41 +85,87 @@ Image LoadImage(const char* _path)
         //    printf("imageDescriptor bit 6\n");
         //if (imageDescriptor & BIT(7))
         //    printf("imageDescriptor bit 7\n");
-        
-        u32 bytesPerPixel = pixelDepth / 8;
-        size_t srcSize = (size_t)width * (size_t)height * bytesPerPixel;
 
-        u8* srcBGRA = (u8*)malloc(srcSize);
-        SDL_ReadIO(file, srcBGRA, srcSize); // data is bgra
-
-        bool originTop = (imageDescriptor & BIT(5));
-
-        u8* p = NULL;
-
-        u8 b = 0;
-        u8 g = 0;
-        u8 r = 0;
-        u8 a = 0;
-
-        const size_t dstSize = (size_t)width * (size_t)height;
-        for (u32 i = 0; i < dstSize; i++)
+        if (pixelDepth == 32)
         {
-            p = srcBGRA + i * 4;
+            u32 bytesPerPixel = pixelDepth / 8;
+            printf("%i\n", bytesPerPixel);
+            size_t srcSize = (size_t)width * (size_t)height * bytesPerPixel;
 
-            b = p[0];
-            g = p[1];
-            r = p[2];
-            a = p[3];
+            u8* srcBGRA = (u8*)malloc(srcSize);
+            SDL_ReadIO(file, srcBGRA, srcSize); // data is bgra
 
-            p[0] = r;
-            p[1] = g;
-            p[2] = b;
-            p[3] = a;
+            bool originTop = (imageDescriptor & BIT(5));
+
+            u8* p = NULL;
+
+            u8 b = 0;
+            u8 g = 0;
+            u8 r = 0;
+            u8 a = 0;
+
+            const size_t dstSize = (size_t)width * (size_t)height;
+            for (u32 i = 0; i < dstSize; i++)
+            {
+                p = srcBGRA + i * 4;
+
+                b = p[0];
+                g = p[1];
+                r = p[2];
+                a = p[3];
+
+                p[0] = r;
+                p[1] = g;
+                p[2] = b;
+                p[3] = a;
+            }
+
+            image.width = width;
+            image.height = height;
+            image.data = (u32*)srcBGRA;
         }
 
-        image.width = width;
-        image.height = height;
-        image.data = (u32*)srcBGRA;
+        if (pixelDepth == 24)
+        {
+            u32 bytesPerPixel = pixelDepth / 8;
+            size_t srcSize = (size_t)width * (size_t)height * bytesPerPixel;
+
+            u8* srcBGR = (u8*)malloc(srcSize);
+            SDL_ReadIO(file, srcBGR, srcSize); // data is bgr
+
+            u8* dstRGBA = (u8*)malloc((size_t)width * (size_t)height * 4);
+
+            bool originTop = (imageDescriptor & BIT(5));
+
+            u8* s = NULL;
+            u8* d = NULL;
+
+            u8 b = 0;
+            u8 g = 0;
+            u8 r = 0;
+
+            const size_t dstSize = (size_t)width * (size_t)height;
+            for (u32 i = 0; i < dstSize; i++)
+            {
+                s = srcBGR + i * 3;
+                d = dstRGBA + i * 4;
+
+                b = s[0];
+                g = s[1];
+                r = s[2];
+
+                d[0] = r;
+                d[1] = g;
+                d[2] = b;
+                d[3] = u8_max;
+            }
+
+            image.width = width;
+            image.height = height;
+            image.data = (u32*)dstRGBA;
+
+            free(srcBGR);
+        }
 
 
         SDL_CloseIO(file);
@@ -134,7 +180,7 @@ Image LoadImage(const char* _path)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 32, 32, 0, GL_RGBA, GL_UNSIGNED_BYTE, image.data);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image.width, image.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image.data);
     glGenerateMipmap(GL_TEXTURE_2D);
 
     return image;

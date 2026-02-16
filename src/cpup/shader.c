@@ -100,19 +100,21 @@ void ShaderBindTexture(u32 _shaderID, u32 _textureID, const char* _variableName,
 
 void ShaderSetFloat(u32 _shaderID, const char* _variableName, f32 _value)
 {
-    glUniform1f(glGetUniformLocation(_shaderID, _variableName), _value);
+    i32 location = glGetUniformLocation(_shaderID, _variableName);
+    if (location > -1)
+        glUniform1f( location, _value);
 }
 
 void ShaderSetVector3(u32 _shaderID, const char* _variableName, Vector3 _vec)
 {
-    int location = glGetUniformLocation(_shaderID, _variableName);
+    i32 location = glGetUniformLocation(_shaderID, _variableName);
     if (location > -1)
         glUniform2fv( location, 1, &_vec.x); 
 }
 
 void ShaderSetMatrix4(u32 _shaderID, const char* _variableName, Matrix4 _mat)
 {
-    int location = glGetUniformLocation(_shaderID, _variableName);
+    i32 location = glGetUniformLocation(_shaderID, _variableName);
     if (location > -1)
         glUniformMatrix4fv(location, 1, GL_FALSE, _mat.m);
 }
