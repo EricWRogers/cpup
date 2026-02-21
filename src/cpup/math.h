@@ -1,5 +1,6 @@
 #pragma once
 #include "types.h"
+#include <math.h>
 
 typedef struct {
     f32 x;

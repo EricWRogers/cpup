@@ -49,6 +49,10 @@ file(GLOB_RECURSE SRC_HEADERS src/*.h)
 
 add_executable(${PROJECT_NAME} ${SRC_SOURCES} ${SRC_HEADERS})
 
+if(NOT EMSCRIPTEN)
+  target_link_libraries(${PROJECT_NAME} PRIVATE m)
+endif()
+
 target_include_directories(${PROJECT_NAME}
     PUBLIC
     PRIVATE

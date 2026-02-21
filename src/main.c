@@ -2,6 +2,7 @@
 #include <windows.h>
 #endif
 
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -93,7 +94,7 @@ int main(int argc, char *argv[])
 
         Matrix4 projection = Mat4Orthographic(0.0f, (float)app.windowWidth, 0.0f, (float)app.windowHeight, 0.001f, 100.0f); 
         Matrix4 view = IdentityMatrix4(); 
-        Mat4Translate(&view, InitVector3(0.0f, 0.0f, -0.5f));
+        Mat4Translate(&view, InitVector3(sin((double)SDL_GetTicks()) * 20.0f, 0.0f, -0.5f));
         
         Matrix4 transform = IdentityMatrix4();
         Mat4Translate(&transform, InitVector3(300.0f, 300.0f, 0.0f));
