@@ -17,6 +17,7 @@
 #include "cpup/types.h"
 #include "cpup/model.h"
 #include "cpup/shader.h"
+#include "cpup/sprite_renderer.h"
 #include "cpup/window.h"
 
 AppContext app;
@@ -107,7 +108,7 @@ int main(int argc, char *argv[])
     }
 
     // create bullets
-    for(int i = 0; i < 20000; i++) {
+    for(int i = 0; i < 100000; i++) {
         u32 entity = CreateEntity(&ecs);
         Transform* t = AddComponent(&ecs, entity, TRANSFORM_ID);
         t->position.x = rand() % app.windowWidth;
@@ -136,6 +137,8 @@ int main(int argc, char *argv[])
     f32 deltaTime = 0.0f;
 
     ECSView view = InitECSView(TRANSFORM_ID | RIGIDBODY_ID | MATERIAL_ID, 128);
+    SpriteRenderer2D spriteRenderer;
+    InitSpriteRenderer2D(&spriteRenderer, 1024, "assets/shaders/sprite.vs", "assets/shaders/sprite.fs");
     
     bool running = true;
     f32 time = 0.0f;
@@ -182,7 +185,6 @@ int main(int argc, char *argv[])
             u32 entity = view.entities[i];
             Transform* t = GetComponent(&ecs, entity, TRANSFORM_ID);
             Rigidbody* rb = GetComponent(&ecs, entity, RIGIDBODY_ID);
-
             t->position.y += rb->velocity.y * deltaTime;
         }
         
@@ -191,29 +193,26 @@ int main(int argc, char *argv[])
         Matrix4 cameraView = IdentityMatrix4(); 
         Mat4Translate(&cameraView, InitVector3(/*sin((double)SDL_GetTicks()) * 2*/0.0f, 0.0f, -0.5f));
 
+        Transform* t;
+        Material* material;
+        SpriteRendererBegin(&spriteRenderer, SPRITE_SORT_TEXTURE);
         for (u32 i = 0; i < vec_count(&view.entities); i++) {
             u32 entity = view.entities[i];
-            Transform* t = GetComponent(&ecs, entity, TRANSFORM_ID);
-            Mesh* mesh = GetComponent(&ecs, entity, MESH_ID);
-            Material* material = GetComponent(&ecs, entity, MATERIAL_ID);
-            
-            Matrix4 transform = IdentityMatrix4();
-            Mat4Translate(&transform, t->position);
-            Mat4Scale(&transform, t->scale);
+            t = GetComponent(&ecs, entity, TRANSFORM_ID);
+            material = GetComponent(&ecs, entity, MATERIAL_ID);
 
-            
-            BindShader(material->shader);
-            ShaderSetFloat(material->shader, "TIME", SDL_GetTicks()/1000.0f);
-            ShaderSetMatrix4(material->shader, "VIEW", cameraView);
-            ShaderSetMatrix4(material->shader, "PROJECTION", projection);
-
-            ShaderBindTexture(material->shader, iconImage.id, "MAIN_TEXTURE", 0);
-            ShaderSetVector4(material->shader, "COLOR", material->color);
-            ShaderSetMatrix4(material->shader, "TRANSFORM", transform);
-            DrawModel(*mesh->model);
+            u32 textureId = material->image ? material->image->id : iconImage.id;
+            SpriteRendererDraw(
+                &spriteRenderer,
+                t->position,
+                (Vector2){ .x = t->scale.x, .y = t->scale.y },
+                textureId,
+                -1,
+                material->color
+            );
         }
-
-        glFlush();
+        SpriteRendererEnd(&spriteRenderer);
+        SpriteRendererRender(&spriteRenderer, projection, SDL_GetTicks()/1000.0f);
 
         SwapWindow(&app);
 
@@ -221,6 +220,7 @@ int main(int argc, char *argv[])
     }
 
     FreeECSView(&view);
+    FreeSpriteRenderer2D(&spriteRenderer);
 
     FreeModel(model);
 
