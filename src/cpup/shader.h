@@ -11,5 +11,7 @@ void UnBindShader();
 
 void ShaderBindTexture(u32 _shaderID, u32 _textureID, const char* _variableName, u32 _slot);
 void ShaderSetFloat(u32 _shaderID, const char* _variableName, f32 _value);
+void ShaderSetVector2(u32 _shaderID, const char* _variableName, Vector2 _vec);
 void ShaderSetVector3(u32 _shaderID, const char* _variableName, Vector3 _vec);
+void ShaderSetVector4(u32 _shaderID, const char* _variableName, Vector4 _vec);
 void ShaderSetMatrix4(u32 _shaderID, const char* _variableName, Matrix4 _mat);

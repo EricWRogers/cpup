@@ -31,12 +31,18 @@ typedef struct {
 } Rigidbody;
 
 typedef struct {
+    Model* model;
+} Mesh;
+
+typedef struct {
     Vector4 color;
     u32     shader;
+    Image*  image;
 } Material;
 
 u64 TRANSFORM_ID;
 u64 RIGIDBODY_ID;
+u64 MESH_ID;
 u64 MATERIAL_ID;
 
 void UpdateBullets(ECS *_ecs, u32 _entityId, void *_userData) {
@@ -44,7 +50,6 @@ void UpdateBullets(ECS *_ecs, u32 _entityId, void *_userData) {
     Rigidbody* rigidbody = GetComponent(_ecs, _entityId, RIGIDBODY_ID);
     int* count = _userData;
     *count += 1;
-    //printf("count: %i\n", *count);
 }
 
 int main(int argc, char *argv[])
@@ -89,6 +94,7 @@ int main(int argc, char *argv[])
 
     TRANSFORM_ID = RegisterComponent(&ecs, sizeof(Transform));
     RIGIDBODY_ID = RegisterComponent(&ecs, sizeof(Rigidbody));
+    MESH_ID = RegisterComponent(&ecs, sizeof(Mesh));
     MATERIAL_ID = RegisterComponent(&ecs, sizeof(Material));
 
     u32 entity1 = CreateEntity(&ecs);
@@ -101,27 +107,35 @@ int main(int argc, char *argv[])
     }
 
     // create bullets
-    for(int i = 0; i < 1000000 - 1; i++) {
+    for(int i = 0; i < 20000; i++) {
         u32 entity = CreateEntity(&ecs);
         Transform* t = AddComponent(&ecs, entity, TRANSFORM_ID);
+        t->position.x = rand() % app.windowWidth;
+        t->position.y = rand() % app.windowHeight*100;
+        t->scale.x = 128 + rand() % 128;
+        t->scale.y = t->scale.x;
+        t->scale.z = 1.0f;
+
         Rigidbody* r = AddComponent(&ecs, entity, RIGIDBODY_ID);
+        r->velocity.y = -100.0f;
+
+        Mesh* mesh = AddComponent(&ecs, entity, MESH_ID);
+        mesh->model = &model;
+
         Material* m = AddComponent(&ecs, entity, MATERIAL_ID);
+        m->color.x = ( rand() % 100 ) * 0.01f;
+        m->color.y = ( rand() % 100 ) * 0.01f;
+        m->color.z = ( rand() % 100 ) * 0.01f;
+        m->color.w = 1.0f;
+
+        m->image = &iconImage;
+        m->shader = shaderProgram;
     }
 
-    
     f32 gameTime = 0.0f;
     f32 deltaTime = 0.0f;
 
-    
-
-    {
-        Material* m = GetComponent(&ecs, entity1, MATERIAL_ID);
-
-        m->color.y = 2.0f;
-        printf("Color: %f %f %f %f\n", m->color.x, m->color.y, m->color.z, m->color.w);
-    }
-    
-
+    ECSView view = InitECSView(TRANSFORM_ID | RIGIDBODY_ID | MATERIAL_ID, 128);
     
     bool running = true;
     f32 time = 0.0f;
@@ -162,39 +176,51 @@ int main(int argc, char *argv[])
         
         gameTime = SDL_GetTicksNS() * 1e-9;
         int count = 0;
-        ForEachEntityWithComponents(&ecs, TRANSFORM_ID | RIGIDBODY_ID | MATERIAL_ID, UpdateBullets, &count);
-        printf("FPS: %f\n", 1.0f/deltaTime);
+        //ForEachEntityWithComponents(&ecs, TRANSFORM_ID | RIGIDBODY_ID | MATERIAL_ID, UpdateBullets, &count);
+        UpdateECSView(&ecs, &view);
+        for (u32 i = 0; i < vec_count(&view.entities); i++) {
+            u32 entity = view.entities[i];
+            Transform* t = GetComponent(&ecs, entity, TRANSFORM_ID);
+            Rigidbody* rb = GetComponent(&ecs, entity, RIGIDBODY_ID);
+
+            t->position.y += rb->velocity.y * deltaTime;
+        }
+        
 
         Matrix4 projection = Mat4Orthographic(0.0f, (float)app.windowWidth, 0.0f, (float)app.windowHeight, 0.001f, 100.0f); 
-        Matrix4 view = IdentityMatrix4(); 
-        Mat4Translate(&view, InitVector3(sin((double)SDL_GetTicks()) * 20.0f, 0.0f, -0.5f));
-        
-        Matrix4 transform = IdentityMatrix4();
-        Mat4Translate(&transform, InitVector3(300.0f, 300.0f, 0.0f));
-        Mat4Scale(&transform, InitVector3(128.0f, 128.0f, 1.0f));
+        Matrix4 cameraView = IdentityMatrix4(); 
+        Mat4Translate(&cameraView, InitVector3(/*sin((double)SDL_GetTicks()) * 2*/0.0f, 0.0f, -0.5f));
 
-        Matrix4 transform2 = IdentityMatrix4();
-        Mat4Translate(&transform2, InitVector3(450.0f, 450.0f, 0.0f));
-        Mat4Scale(&transform2, InitVector3(128.0f, 128.0f, 1.0f));
+        for (u32 i = 0; i < vec_count(&view.entities); i++) {
+            u32 entity = view.entities[i];
+            Transform* t = GetComponent(&ecs, entity, TRANSFORM_ID);
+            Mesh* mesh = GetComponent(&ecs, entity, MESH_ID);
+            Material* material = GetComponent(&ecs, entity, MATERIAL_ID);
+            
+            Matrix4 transform = IdentityMatrix4();
+            Mat4Translate(&transform, t->position);
+            Mat4Scale(&transform, t->scale);
 
-        // draw our first triangle
-        // bind the shader
-        BindShader(shaderProgram);
-        ShaderSetFloat(shaderProgram, "TIME", SDL_GetTicks()/1000.0f);
-        ShaderSetMatrix4(shaderProgram, "VIEW", view);
-        ShaderSetMatrix4(shaderProgram, "PROJECTION", projection);
+            
+            BindShader(material->shader);
+            ShaderSetFloat(material->shader, "TIME", SDL_GetTicks()/1000.0f);
+            ShaderSetMatrix4(material->shader, "VIEW", cameraView);
+            ShaderSetMatrix4(material->shader, "PROJECTION", projection);
 
-        ShaderBindTexture(shaderProgram, iconImage.id, "MAIN_TEXTURE", 0);
-        ShaderSetMatrix4(shaderProgram, "TRANSFORM", transform);
-        DrawModel(model);
+            ShaderBindTexture(material->shader, iconImage.id, "MAIN_TEXTURE", 0);
+            ShaderSetVector4(material->shader, "COLOR", material->color);
+            ShaderSetMatrix4(material->shader, "TRANSFORM", transform);
+            DrawModel(*mesh->model);
+        }
 
-        ShaderBindTexture(shaderProgram, containerImage.id, "MAIN_TEXTURE", 0);
-        ShaderSetMatrix4(shaderProgram, "TRANSFORM", transform2);
-        DrawModel(model);
-        UnBindShader();
+        glFlush();
 
         SwapWindow(&app);
+
+        printf("FPS: %f %i\n", 1.0f/deltaTime, count);
     }
+
+    FreeECSView(&view);
 
     FreeModel(model);
 

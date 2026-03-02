@@ -36,7 +36,9 @@ ECS InitECS(i32 _entityCapacity) {
 
 u64 RegisterComponent(ECS* _ecs, size_t _size) {
     u64 id = _ecs->nextId;
-    _ecs->nextId = 1 << _ecs->nextId;
+    _ecs->nextId <<= 1;
+    if (_ecs->nextId == 0)
+        _ecs->nextId = 1;
 
     u32 index = vec_count(&_ecs->componentMap);
     vec_resize(&_ecs->componentMap, index + 1);
@@ -186,6 +188,61 @@ void* GetComponent(ECS* _ecs, u32 _entityId, u32 _componentId) {
         return NULL;
 
     return (u8*)dense + (denseIndex * vec_element_size(&dense));
+}
+
+void RemoveComponent(ECS* _ecs, u32 _entityId, u32 _componentId) {
+    if (_ecs == NULL || _componentId == 0 || _entityId >= vec_count(&_ecs->mask))
+        return;
+
+    i32 componentIndex = GetComponentIndex(_componentId);
+    if (componentIndex < 0 || (u32)componentIndex >= vec_count(&_ecs->componentMap))
+        return;
+
+    if ((_ecs->mask[_entityId] & (u64)_componentId) == 0)
+        return;
+
+    EntityAndIndex* componentMap = _ecs->componentMap[componentIndex];
+    void* dense = _ecs->denseComponents[componentIndex];
+    if (componentMap == NULL || dense == NULL)
+        return;
+
+    u32 removedIndex = componentMap[_entityId].index;
+    u32 denseCount = vec_count(&dense);
+    if (removedIndex >= denseCount)
+        return;
+
+    vec_remove_at(&dense, removedIndex);
+    _ecs->denseComponents[componentIndex] = dense;
+
+    componentMap[_entityId].index = u32_max;
+    _ecs->mask[_entityId] &= ~((u64)_componentId);
+
+    u32 entityCount = vec_count(&_ecs->mask);
+    for (u32 entity = 0; entity < entityCount; entity++) {
+        if ((_ecs->mask[entity] & (u64)_componentId) == 0)
+            continue;
+
+        if (componentMap[entity].index > removedIndex)
+            componentMap[entity].index--;
+    }
+
+    _ecs->version++;
+}
+
+void DestroyEntity(ECS* _ecs, u32 _entityId) {
+    if (_ecs == NULL || _entityId >= vec_count(&_ecs->mask))
+        return;
+
+    u64 mask = _ecs->mask[_entityId];
+    if (mask == 0)
+        return;
+
+    for (u32 bit = 0; bit < 32; bit++) {
+        u64 componentId = 1ull << bit;
+        if ((mask & componentId) != 0) {
+            RemoveComponent(_ecs, _entityId, (u32)componentId);
+        }
+    }
 }
 
 u64 GetSmallestComponentIdInMask(ECS* _ecs, u64 _requiredMask) {

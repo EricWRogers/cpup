@@ -12,6 +12,7 @@ i32 InitWindow(AppContext* _appContext)
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
     SDL_SetHint(SDL_HINT_RENDER_GPU_LOW_POWER, "0"); // prefer high perforance GPU
+    SDL_SetHint(SDL_HINT_OPENGL_FORCE_SRGB_CAPABLE, "0");
 
     _appContext->window = (void*)SDL_CreateWindow("CPup", _appContext->windowWidth, _appContext->windowHeight, SDL_WINDOW_OPENGL);
 
@@ -44,6 +45,11 @@ i32 InitWindow(AppContext* _appContext)
     glEnable(GL_ALPHA);
     glDepthFunc(GL_LESS);
 
+    SDL_GL_SetSwapInterval(0);
+    // 1 vsync on
+    // 0 off
+    // -1 adaptive vsync
+
     return 0;
 }
 
@@ -61,6 +67,11 @@ void FreeWindow(AppContext* _appContext)
 void SwapWindow(AppContext* _appContext)
 {
     SDL_GL_SwapWindow((SDL_Window*)_appContext->window);
+}
+
+void SetWindowTitle(AppContext* _appContext, const char* _name)
+{
+    SDL_SetWindowTitle((SDL_Window*)_appContext->window, _name);
 }
 
 void ClearWindow()

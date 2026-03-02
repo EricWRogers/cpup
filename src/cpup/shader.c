@@ -92,8 +92,9 @@ void UnBindShader()
 
 void ShaderBindTexture(u32 _shaderID, u32 _textureID, const char* _variableName, u32 _slot)
 {
+    glActiveTexture(GL_TEXTURE0 + _slot);
     // load the texture into a slot
-    glBindTexture(GL_TEXTURE_2D + _slot, _textureID); 
+    glBindTexture(GL_TEXTURE_2D, _textureID); 
     // get texture variable from sharder then tell it which slot to use
     glUniform1i(glGetUniformLocation(_shaderID, _variableName), _slot);
 }
@@ -105,11 +106,25 @@ void ShaderSetFloat(u32 _shaderID, const char* _variableName, f32 _value)
         glUniform1f( location, _value);
 }
 
-void ShaderSetVector3(u32 _shaderID, const char* _variableName, Vector3 _vec)
+void ShaderSetVector2(u32 _shaderID, const char* _variableName, Vector2 _vec)
 {
     i32 location = glGetUniformLocation(_shaderID, _variableName);
     if (location > -1)
         glUniform2fv( location, 1, &_vec.x); 
+}
+
+void ShaderSetVector3(u32 _shaderID, const char* _variableName, Vector3 _vec)
+{
+    i32 location = glGetUniformLocation(_shaderID, _variableName);
+    if (location > -1)
+        glUniform3fv( location, 1, &_vec.x); 
+}
+
+void ShaderSetVector4(u32 _shaderID, const char* _variableName, Vector4 _vec)
+{
+    i32 location = glGetUniformLocation(_shaderID, _variableName);
+    if (location > -1)
+        glUniform4fv( location, 1, &_vec.x); 
 }
 
 void ShaderSetMatrix4(u32 _shaderID, const char* _variableName, Matrix4 _mat)
