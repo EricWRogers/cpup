@@ -11,6 +11,7 @@
 #include <SDL3/SDL_main.h>
 
 #include "cpup/io.h"
+#include "cpup/ecs.h"
 #include "cpup/vec.h"
 #include "cpup/math.h"
 #include "cpup/types.h"
@@ -19,6 +20,32 @@
 #include "cpup/window.h"
 
 AppContext app;
+
+typedef struct {
+    Vector3 position;
+    Vector3 scale;
+} Transform;
+
+typedef struct {
+    Vector3 velocity;
+} Rigidbody;
+
+typedef struct {
+    Vector4 color;
+    u32     shader;
+} Material;
+
+u64 TRANSFORM_ID;
+u64 RIGIDBODY_ID;
+u64 MATERIAL_ID;
+
+void UpdateBullets(ECS *_ecs, u32 _entityId, void *_userData) {
+    Transform* transform = GetComponent(_ecs, _entityId, TRANSFORM_ID);
+    Rigidbody* rigidbody = GetComponent(_ecs, _entityId, RIGIDBODY_ID);
+    int* count = _userData;
+    *count += 1;
+    //printf("count: %i\n", *count);
+}
 
 int main(int argc, char *argv[])
 {
@@ -57,6 +84,44 @@ int main(int argc, char *argv[])
     vec_append(&indices, in, 6);
     
     Model model = BuildModel(&vertices, &indices, STATIC_DRAW);
+
+    ECS ecs = InitECS(100000);
+
+    TRANSFORM_ID = RegisterComponent(&ecs, sizeof(Transform));
+    RIGIDBODY_ID = RegisterComponent(&ecs, sizeof(Rigidbody));
+    MATERIAL_ID = RegisterComponent(&ecs, sizeof(Material));
+
+    u32 entity1 = CreateEntity(&ecs);
+
+    {
+        Transform* t = AddComponent(&ecs, entity1, TRANSFORM_ID);
+        Material* m = AddComponent(&ecs, entity1, MATERIAL_ID);
+
+        m->color.x = 1.0f;
+    }
+
+    // create bullets
+    for(int i = 0; i < 1000000 - 1; i++) {
+        u32 entity = CreateEntity(&ecs);
+        Transform* t = AddComponent(&ecs, entity, TRANSFORM_ID);
+        Rigidbody* r = AddComponent(&ecs, entity, RIGIDBODY_ID);
+        Material* m = AddComponent(&ecs, entity, MATERIAL_ID);
+    }
+
+    
+    f32 gameTime = 0.0f;
+    f32 deltaTime = 0.0f;
+
+    
+
+    {
+        Material* m = GetComponent(&ecs, entity1, MATERIAL_ID);
+
+        m->color.y = 2.0f;
+        printf("Color: %f %f %f %f\n", m->color.x, m->color.y, m->color.z, m->color.w);
+    }
+    
+
     
     bool running = true;
     f32 time = 0.0f;
@@ -91,6 +156,14 @@ int main(int argc, char *argv[])
 
         // render
         ClearWindow();
+
+        if (gameTime != 0.0f)
+            deltaTime = (SDL_GetTicksNS() * 1e-9) -  gameTime;
+        
+        gameTime = SDL_GetTicksNS() * 1e-9;
+        int count = 0;
+        ForEachEntityWithComponents(&ecs, TRANSFORM_ID | RIGIDBODY_ID | MATERIAL_ID, UpdateBullets, &count);
+        printf("FPS: %f\n", 1.0f/deltaTime);
 
         Matrix4 projection = Mat4Orthographic(0.0f, (float)app.windowWidth, 0.0f, (float)app.windowHeight, 0.001f, 100.0f); 
         Matrix4 view = IdentityMatrix4(); 
