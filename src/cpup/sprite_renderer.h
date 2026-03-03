@@ -55,5 +55,15 @@ void SpriteRendererDraw(
     f32 _depth,
     Vector4 _color
 );
+void SpriteRendererDrawUV(
+    SpriteRenderer2D* _renderer,
+    Vector3 _position, // Sprite center in world space.
+    Vector2 _size,
+    Vector2 _uvMin,
+    Vector2 _uvMax,
+    u32 _textureId,
+    f32 _depth,
+    Vector4 _color
+);
 void SpriteRendererEnd(SpriteRenderer2D* _renderer);
 void SpriteRendererRender(SpriteRenderer2D* _renderer, Matrix4 _projection, f32 _time);

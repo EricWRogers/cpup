@@ -7,7 +7,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
 
 #include "cpup/io.h"
@@ -16,9 +15,11 @@
 #include "cpup/math.h"
 #include "cpup/types.h"
 #include "cpup/model.h"
+#include "cpup/opengl.h"
 #include "cpup/shader.h"
 #include "cpup/input_manager.h"
 #include "cpup/sprite_renderer.h"
+#include "cpup/text_renderer.h"
 #include "cpup/window.h"
 
 AppContext app;
@@ -146,21 +147,18 @@ int main(int argc, char *argv[])
 
     u32 entity1 = CreateEntity(&ecs);
 
-    {
-        Transform* t = AddComponent(&ecs, entity1, TRANSFORM_ID);
-        Material* m = AddComponent(&ecs, entity1, MATERIAL_ID);
-
-        m->color.x = 1.0f;
-    }
-
-    // create bullets
-    //for(int i = 0; i < 100000; i++) {
-    //    
-    //}
-
     ECSView view = InitECSView(TRANSFORM_ID | RIGIDBODY_ID | MATERIAL_ID, 128);
     SpriteRenderer2D spriteRenderer;
+    TextRenderer2D textRenderer;
     InitSpriteRenderer2D(&spriteRenderer, 1024, "assets/shaders/sprite.vs", "assets/shaders/sprite.fs");
+    InitTextRenderer2D(
+        &textRenderer,
+        &spriteRenderer,
+        "assets/fonts/Antonio-Bold.ttf",
+        32.0f,
+        512,
+        512
+    );
     
     bool running = true;
     f32 time = 0.0f;
@@ -245,16 +243,34 @@ int main(int argc, char *argv[])
                 material->color
             );
         }
+        char debugText[128];
+        snprintf(
+            debugText,
+            sizeof(debugText),
+            "FPS: %.1f  Alive: %u",
+            1.0f / app.deltaTime,
+            GetAliveEntityCount(&ecs)
+        );
+        RenderText(
+            &textRenderer,
+            debugText,
+            10.0f,
+            25.0f,
+            -0.9f,
+            0.75f,
+            (Vector4){ .x = 1.0f, .y = 1.0f, .z = 1.0f, .w = 1.0f },
+            (f32)app.windowHeight
+        );
+
         SpriteRendererEnd(&spriteRenderer);
         SpriteRendererRender(&spriteRenderer, projection, SDL_GetTicks()/1000.0f);
 
         SwapWindow(&app);
-
-        printf("FPS: %f alive: %u\n", 1.0f / app.deltaTime, GetAliveEntityCount(&ecs));
     }
 
     FreeECSView(&view);
     FreeSpriteRenderer2D(&spriteRenderer);
+    FreeTextRenderer2D(&textRenderer);
 
     FreeModel(model);
 

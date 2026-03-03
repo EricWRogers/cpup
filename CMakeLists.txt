@@ -76,6 +76,7 @@ target_precompile_headers(${PROJECT_NAME}
     "src/cpup/vec.h"
     "src/cpup/arena.h"
     "src/cpup/io.h"
+    "src/cpup/math.h"
     "src/cpup/types.h"
     "src/cpup/opengl.h"
 )

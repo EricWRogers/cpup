@@ -84,6 +84,19 @@ void SpriteRendererDraw(
 ) {
     Vector2 uvMin = { .x = 0.0f, .y = 0.0f };
     Vector2 uvMax = { .x = 1.0f, .y = 1.0f };
+    SpriteRendererDrawUV(_renderer, _position, _size, uvMin, uvMax, _textureId, _depth, _color);
+}
+
+void SpriteRendererDrawUV(
+    SpriteRenderer2D* _renderer,
+    Vector3 _position,
+    Vector2 _size,
+    Vector2 _uvMin,
+    Vector2 _uvMax,
+    u32 _textureId,
+    f32 _depth,
+    Vector4 _color
+) {
     Vector2 halfSize = { .x = _size.x * 0.5f, .y = _size.y * 0.5f };
     f32 left = _position.x - halfSize.x;
     f32 right = _position.x + halfSize.x;
@@ -96,19 +109,19 @@ void SpriteRendererDraw(
 
     glyph.topLeft.position = (Vector3){ .x = left, .y = top, .z = _depth };
     glyph.topLeft.color = _color;
-    glyph.topLeft.uv = (Vector2){ .x = uvMin.x, .y = uvMax.y };
+    glyph.topLeft.uv = (Vector2){ .x = _uvMin.x, .y = _uvMax.y };
 
     glyph.bottomLeft.position = (Vector3){ .x = left, .y = bottom, .z = _depth };
     glyph.bottomLeft.color = _color;
-    glyph.bottomLeft.uv = (Vector2){ .x = uvMin.x, .y = uvMin.y };
+    glyph.bottomLeft.uv = (Vector2){ .x = _uvMin.x, .y = _uvMin.y };
 
     glyph.bottomRight.position = (Vector3){ .x = right, .y = bottom, .z = _depth };
     glyph.bottomRight.color = _color;
-    glyph.bottomRight.uv = (Vector2){ .x = uvMax.x, .y = uvMin.y };
+    glyph.bottomRight.uv = (Vector2){ .x = _uvMax.x, .y = _uvMin.y };
 
     glyph.topRight.position = (Vector3){ .x = right, .y = top, .z = _depth };
     glyph.topRight.color = _color;
-    glyph.topRight.uv = (Vector2){ .x = uvMax.x, .y = uvMax.y };
+    glyph.topRight.uv = (Vector2){ .x = _uvMax.x, .y = _uvMax.y };
 
     vec_add(&_renderer->glyphs, &glyph);
 }
