@@ -334,3 +334,16 @@ void FreeECSView(ECSView* _view) {
     vec_free(&_view->entities);
     _view->lastVersion = 0;
 }
+
+u32 GetAliveEntityCount(ECS* _ecs) {
+    if (_ecs == NULL)
+        return 0;
+
+    u32 aliveCount = 0;
+    u32 entityCount = vec_count(&_ecs->mask);
+    for (u32 entityId = 0; entityId < entityCount; entityId++) {
+        if (_ecs->mask[entityId] != 0)
+            aliveCount++;
+    }
+    return aliveCount;
+}

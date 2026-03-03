@@ -49,7 +49,7 @@ void FreeSpriteRenderer2D(SpriteRenderer2D* _renderer);
 void SpriteRendererBegin(SpriteRenderer2D* _renderer, SpriteSortType _sortType);
 void SpriteRendererDraw(
     SpriteRenderer2D* _renderer,
-    Vector3 _position,
+    Vector3 _position, // Sprite center in world space.
     Vector2 _size,
     u32 _textureId,
     f32 _depth,

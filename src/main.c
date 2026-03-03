@@ -17,6 +17,7 @@
 #include "cpup/types.h"
 #include "cpup/model.h"
 #include "cpup/shader.h"
+#include "cpup/input_manager.h"
 #include "cpup/sprite_renderer.h"
 #include "cpup/window.h"
 
@@ -41,16 +42,60 @@ typedef struct {
     Image*  image;
 } Material;
 
+typedef struct {
+    f32 timer;
+} TimeBomb;
+
 u64 TRANSFORM_ID;
 u64 RIGIDBODY_ID;
 u64 MESH_ID;
 u64 MATERIAL_ID;
+u64 TIME_BOMB_ID;
 
 void UpdateBullets(ECS *_ecs, u32 _entityId, void *_userData) {
     Transform* transform = GetComponent(_ecs, _entityId, TRANSFORM_ID);
     Rigidbody* rigidbody = GetComponent(_ecs, _entityId, RIGIDBODY_ID);
     int* count = _userData;
     *count += 1;
+}
+
+u32 SpawnLogo(ECS* _ecs) {
+    u32 entity = CreateEntity(_ecs);
+    Transform* t = AddComponent(_ecs, entity, TRANSFORM_ID);
+    Rigidbody* r = AddComponent(_ecs, entity, RIGIDBODY_ID);
+    Mesh* mesh = AddComponent(_ecs, entity, MESH_ID);
+    Material* m = AddComponent(_ecs, entity, MATERIAL_ID);
+    TimeBomb* bomb = AddComponent(_ecs, entity, TIME_BOMB_ID);
+    return entity;
+}
+
+void ResetLogo(ECS* _ecs, u32 _entity, u32 _shaderId, Image* _image, Model* _model) {
+    Transform* t = GetComponent(_ecs, _entity, TRANSFORM_ID);
+    t->position.x = 300.0f;
+    t->position.y = 300.0f;
+    t->scale.x = 128 + rand() % 128;
+    t->scale.y = t->scale.x;
+    t->scale.z = 1.0f;
+
+    Rigidbody* r = GetComponent(_ecs, _entity, RIGIDBODY_ID);
+    r->velocity.x = ((rand() % 200) - 100) * 0.01f;
+    r->velocity.y = ((rand() % 200) - 100) * 0.01f;
+    r->velocity = Vec3Mul(r->velocity, 100.0f);
+
+    Mesh* mesh = GetComponent(_ecs, _entity, MESH_ID);
+    mesh->model = _model;
+
+    Material* m = GetComponent(_ecs, _entity, MATERIAL_ID);
+    m->color.x = ( rand() % 100 ) * 0.01f;
+    m->color.y = ( rand() % 100 ) * 0.01f;
+    m->color.z = ( rand() % 100 ) * 0.01f;
+    m->color.w = 1.0f;
+
+    m->image = _image;
+    m->shader = _shaderId;
+
+    TimeBomb* bomb = GetComponent(_ecs, _entity, TIME_BOMB_ID);
+    bomb->timer = 5.0f;
 }
 
 int main(int argc, char *argv[])
@@ -97,6 +142,7 @@ int main(int argc, char *argv[])
     RIGIDBODY_ID = RegisterComponent(&ecs, sizeof(Rigidbody));
     MESH_ID = RegisterComponent(&ecs, sizeof(Mesh));
     MATERIAL_ID = RegisterComponent(&ecs, sizeof(Material));
+    TIME_BOMB_ID = RegisterComponent(&ecs, sizeof(TimeBomb));
 
     u32 entity1 = CreateEntity(&ecs);
 
@@ -108,33 +154,9 @@ int main(int argc, char *argv[])
     }
 
     // create bullets
-    for(int i = 0; i < 100000; i++) {
-        u32 entity = CreateEntity(&ecs);
-        Transform* t = AddComponent(&ecs, entity, TRANSFORM_ID);
-        t->position.x = rand() % app.windowWidth;
-        t->position.y = rand() % app.windowHeight*100;
-        t->scale.x = 128 + rand() % 128;
-        t->scale.y = t->scale.x;
-        t->scale.z = 1.0f;
-
-        Rigidbody* r = AddComponent(&ecs, entity, RIGIDBODY_ID);
-        r->velocity.y = -100.0f;
-
-        Mesh* mesh = AddComponent(&ecs, entity, MESH_ID);
-        mesh->model = &model;
-
-        Material* m = AddComponent(&ecs, entity, MATERIAL_ID);
-        m->color.x = ( rand() % 100 ) * 0.01f;
-        m->color.y = ( rand() % 100 ) * 0.01f;
-        m->color.z = ( rand() % 100 ) * 0.01f;
-        m->color.w = 1.0f;
-
-        m->image = &iconImage;
-        m->shader = shaderProgram;
-    }
-
-    f32 gameTime = 0.0f;
-    f32 deltaTime = 0.0f;
+    //for(int i = 0; i < 100000; i++) {
+    //    
+    //}
 
     ECSView view = InitECSView(TRANSFORM_ID | RIGIDBODY_ID | MATERIAL_ID, 128);
     SpriteRenderer2D spriteRenderer;
@@ -143,6 +165,8 @@ int main(int argc, char *argv[])
     bool running = true;
     f32 time = 0.0f;
     while(running) {
+        InputManagerNewFrame(&app);
+
         // imput
         SDL_Event event;
         while (SDL_PollEvent(&event))
@@ -174,18 +198,26 @@ int main(int argc, char *argv[])
         // render
         ClearWindow();
 
-        if (gameTime != 0.0f)
-            deltaTime = (SDL_GetTicksNS() * 1e-9) -  gameTime;
+        for(int i = 0; i < 5 && GetAliveEntityCount(&ecs) < 50000; i++) {
+            u32 entity  = SpawnLogo(&ecs);
+            ResetLogo(&ecs, entity, shaderProgram, &iconImage, &model);
+        }
+
+        if (app.time != 0.0f)
+            app.deltaTime = (SDL_GetTicksNS() * 1e-9) -  app.time;
         
-        gameTime = SDL_GetTicksNS() * 1e-9;
-        int count = 0;
-        //ForEachEntityWithComponents(&ecs, TRANSFORM_ID | RIGIDBODY_ID | MATERIAL_ID, UpdateBullets, &count);
-        UpdateECSView(&ecs, &view);
+        app.time = SDL_GetTicksNS() * 1e-9;
+        //UpdateECSView(&ecs, &view);
         for (u32 i = 0; i < vec_count(&view.entities); i++) {
             u32 entity = view.entities[i];
             Transform* t = GetComponent(&ecs, entity, TRANSFORM_ID);
             Rigidbody* rb = GetComponent(&ecs, entity, RIGIDBODY_ID);
-            t->position.y += rb->velocity.y * deltaTime;
+            t->position = Vec3Add(t->position, Vec3Mul(rb->velocity, app.deltaTime));
+            TimeBomb* bomb = GetComponent(&ecs, entity, TIME_BOMB_ID);
+            bomb->timer -= app.deltaTime;
+            
+            if (bomb->timer <= 0.0f)
+                ResetLogo(&ecs, entity, shaderProgram, &iconImage, &model);
         }
         
 
@@ -195,7 +227,9 @@ int main(int argc, char *argv[])
 
         Transform* t;
         Material* material;
+
         SpriteRendererBegin(&spriteRenderer, SPRITE_SORT_TEXTURE);
+        UpdateECSView(&ecs, &view);
         for (u32 i = 0; i < vec_count(&view.entities); i++) {
             u32 entity = view.entities[i];
             t = GetComponent(&ecs, entity, TRANSFORM_ID);
@@ -216,7 +250,7 @@ int main(int argc, char *argv[])
 
         SwapWindow(&app);
 
-        printf("FPS: %f %i\n", 1.0f/deltaTime, count);
+        printf("FPS: %f alive: %u\n", 1.0f / app.deltaTime, GetAliveEntityCount(&ecs));
     }
 
     FreeECSView(&view);
